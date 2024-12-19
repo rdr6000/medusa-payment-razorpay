@@ -523,10 +523,10 @@ abstract class RazorpayBase extends AbstractPaymentProcessor {
     const paymentsResponse = await this.razorpay_.orders.fetchPayments(
       order_id
     );
-    const possibleCatpures = paymentsResponse.items?.filter(
+    const possibleCaptures = paymentsResponse.items?.filter(
       (item) => item.status == "authorized"
     );
-    const result = possibleCatpures?.map(async (payment) => {
+    const result = possibleCaptures?.map(async (payment) => {
       const { id, amount, currency } = payment;
 
       const paymentIntent = await this.razorpay_.payments.capture(
@@ -562,10 +562,11 @@ abstract class RazorpayBase extends AbstractPaymentProcessor {
     PaymentProcessorError | PaymentProcessorSessionResponse["session_data"]
   > {
     try {
-      const id = (paymentSessionData as unknown as Orders.RazorpayOrder).id as string;
+      const id = (paymentSessionData as unknown as Orders.RazorpayOrder)
+        .id as string;
       const payments = await this.razorpay_.orders.fetchPayments(id);
       const payment_id = payments.items.find((p) => {
-        return parseInt(p.amount.toString()) >= refundAmount;
+        return parseInt(`${p.amount}`.toString()) >= refundAmount;
       })?.id;
       if (payment_id) {
         const refundRequest: Refunds.RazorpayRefundCreateRequestBody = {
